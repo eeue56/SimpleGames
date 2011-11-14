@@ -19,9 +19,7 @@ class Bagels(object):
             return self.scores
         
         if len(guess) != self.size:
-            raise ValueError('You can\'t guess more or less things than I contain!')
-
-        
+            raise ValueError('You can\'t guess more or less things than I contain!')        
         
         for my_item, guess_item in zip(self.items, guess):
             if my_item == guess_item:
@@ -35,7 +33,6 @@ class Bagels(object):
         return self.scores
         
             
-
 if __name__ == '__main__':
     while True:
         game = Bagels()
@@ -64,5 +61,4 @@ if __name__ == '__main__':
         play_again = raw_input('Play again? Y/N : ')
         if play_again.strip().lower() != 'y':
             break
-        
     
