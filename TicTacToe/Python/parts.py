@@ -71,6 +71,7 @@ class TicTacToeGame(object):
             
         return '\n'.join(string)
 
+    
     def change_piece(self, new_token, x, y):
         if len(self._moves.keys()) + 1 >= self.size**2:
             raise GameOver('There are no more moves to be made!')
@@ -97,7 +98,7 @@ class TicTacToeGame(object):
         return True
     
     def is_won(self):
-        return self._is_any_row_won() or self._is_any_colom_won() or self._is_any_diagonal_won()
+        return self._is_any_row_won() or self._is_any_column_won() or self._is_any_diagonal_won()
 
     def winning_move(self):
         return self._moves[max(self._moves.keys())]
@@ -105,16 +106,16 @@ class TicTacToeGame(object):
     def _is_any_row_won(self):
         return any(self._is_series_won(row) for row in self.pieces)
 
-    def _is_any_colom_won(self):
+    def _is_any_column_won(self):
         
-        coloms = [ [] for x in self.pieces]
+        columns = [ [] for x in self.pieces]
         
         for row_index, row in enumerate(self.pieces):
             for item in row:
-                coloms[row_index].append(item)
+                columns[row_index].append(item)
 
-        for colom in coloms:
-            if self._is_series_won(colom):
+        for column in columns:
+            if self._is_series_won(column):
                 return True
         return False
 
@@ -144,7 +145,19 @@ class TicTacToeGame(object):
 
         self.winner = first_token
         return True
-        
-            
+
+class Player(object):
+
+    def __init__(self, name, token):
+        self.name = name
+        self.token = token
+
+
+def main():
+    game = TicTacToeGame()
+    while game.state == 0:
+        raw_input("Enter, in the format
+    
+    
 if __name__ == '__main__':            
-    pass
+    
