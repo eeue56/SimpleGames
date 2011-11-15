@@ -98,10 +98,11 @@ class HangmanGame(object):
                 break
     
     def bot_guess(self, letter):
-        before_guess = self.word
+        before_guess = str(self.word)
         if self.word.is_fully_visible():
             return 0
-        if before_guess == self.word.change_visiblity(letter):
+        self.word.change_visiblity(letter)
+        if before_guess == str(self.word):
             return -1
         else:
             return 1
@@ -122,19 +123,14 @@ class HangmanBot(object):
     def fitting_words(self, wanted):
         return [word for word in self.words if len(wanted) == len(word) ]
         
-    def play(self, amount_of_games):
+    def play_to_learn(self, amount_of_games):
         for x in xrange(amount_of_games):
-            #self.setup()
-            self.game.generate_new_word()
-            while True:
-                for letter in sample(lowercase_letters, len(lowercase_letters)):
-                    guess_value = self.game.bot_guess(letter)
-                    if guess_value == 0:
-                        break
-                if guess_value == 0:
-                    break
-                else:
-                    self.state[letter] += guess_value
+            word = self.game.random_word()
+            
+            for letter in lowercase_letters:
+                self.game.word = HiddenWord(word)
+                guess_value = self.game.bot_guess(letter)
+                self.state[letter] += guess_value
 
     def learn(self):
         mean = average(self.state.values())
@@ -233,30 +229,61 @@ class HangmanBot(object):
                 break
             
         return moves
+
+    def play_random_unlearned_game(self, word=None):
+        """Stupidly slow"""
+        if word is None:
+            self.game.generate_new_word()
+        else:
+            self.game.word = HiddenWord(word)
+            
+        moves = 0
+        letter_copy = sample(lowercase_letters, len(lowercase_letters))
+        while True:
+            for letter in letter_copy:
+                moves += 1
+                guess_value = self.game.bot_guess(letter)
+                if guess_value == 0:
+                        break
+            if guess_value == 0:
+                break
+            
+        return moves
             
             
 if __name__ == '__main__':
     bot = HangmanBot('../WordLists/pocket.txt')
+    bot.play_to_learn(5000)
+    bot.learn()
     print 'Time to test my learned vs unlearned playing bot:'
     random_word = bot.game.random_word()
     print 'The word was {}'.format(random_word.reveal())
     print 'Learned : {} moves'.format(bot.play_learned_game(random_word))
     print 'Unlearned : {} moves'.format(bot.play_unlearned_game(random_word))
+    print 'Random unlearned : {} moves'.format(bot.play_random_unlearned_game(random_word))
     #print 'Lev : {} moves'.format(bot.play_lev_game(random_word))
 
     learned_moves = 0
     unlearned_moves = 0
+    random_unlearned_moves = 0
     lev_moves = 0
     n = 5000
     for x in xrange(n):
         random_word = bot.game.random_word()
         learned_moves += bot.play_learned_game(random_word)
         unlearned_moves += bot.play_unlearned_game(random_word)
+        random_unlearned_moves += bot.play_random_unlearned_game(random_word)
         #lev_moves += bot.play_lev_game(random_word)
 
+    print
     print 'Moves using learned method : {}'.format(learned_moves)
     print 'Average moves per word with learned : {}'.format(learned_moves/(n +0.0))
+    print
     print 'Moves using unlearned method : {}'.format(unlearned_moves)
     print 'Average moves per word with unlearned : {}'.format(unlearned_moves/(n +0.0))
+    print
+    print 'Moves using random unlearned method : {}'.format(random_unlearned_moves)
+    print 'Average moves per word with random unlearned : {}'.format(random_unlearned_moves/(n +0.0))
+    print
     print 'The difference was {}'.format(unlearned_moves - learned_moves)
     #print 'Moves using lev method : {}'.format(lev_moves)
