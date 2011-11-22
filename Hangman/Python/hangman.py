@@ -1,5 +1,6 @@
 from random import choice, sample
 from string import ascii_lowercase as lowercase_letters
+import sys
 
 def levenshtein(current_word, next_word):
     if len(current_word) < len(next_word):
@@ -50,6 +51,12 @@ class HiddenWord(str):
     def reveal(self):
         return self.letters
 
+    def characters_left_to_guess(self):
+        return self.__str__().count(self.hidden_token)
+
+    def visible_characters(self):
+        return [(x, y) for x, y in enumerate(str(self.letters)) if y != self.hidden_token]
+    
     def __eq__(self, word):
         return self.letters == word
 
@@ -99,16 +106,14 @@ class HangmanGame(object):
     
     def bot_guess(self, letter):
         before_guess = str(self.word)
+        self.word.change_visiblity(letter)
         if self.word.is_fully_visible():
             return 0
-        self.word.change_visiblity(letter)
         if before_guess == str(self.word):
             return -1
         else:
             return 1
         
-        
-
 
 class HangmanBot(object):
 
@@ -135,9 +140,11 @@ class HangmanBot(object):
     def learn(self):
         mean = average(self.state.values())
         ideals = []
-        for k, v in self.state.iteritems():
-            if v >= mean:
-                ideals.append(k)
+        print self.state
+        items = sorted(self.state.items(), key=lambda (k, v): (v, k))
+        items.reverse()
+        for k, v in items:
+            ideals.append(k)
         with open('learning_file.csv','wb') as f:
             f.write(','.join(ideals))
 
@@ -172,7 +179,58 @@ class HangmanBot(object):
                 break
             
         return moves
+
+    def play_intelligent_lev_game(self, word=None, border=1):
+        """Amazingly fast(sometimes)"""
+        if word is None:
+            self.game.generate_new_word()
+        else:
+            self.game.word = HiddenWord(word)
+
+        if not self.ideals:
+            self.set_ideals()
+
+        ideals = self.ideals[:]
+        moves = 0
         
+        while self.game.word.characters_left_to_guess() > border:
+            for letter in ideals[:]:
+                moves += 1
+                guess_value = self.game.bot_guess(letter)
+                ideals.remove(letter)
+                if guess_value == 1:
+                    break
+        
+        for word in self.advance_fitting_words(self.game.word, border):
+            word = [letter for letter in word if letter in ideals]
+            for letter in word:
+                moves += 1
+                guess_value = self.game.bot_guess(letter)
+                ideals.remove(letter)
+                if guess_value == 0:
+                    break
+            if guess_value == 0:
+                break
+            
+        return moves
+        
+    def advance_fitting_words(self, wanted, border=1):
+        visible_characters = wanted.visible_characters()
+        start_out_words = self.fitting_words(wanted)
+       
+        words = list()
+
+        for word in start_out_words:
+            if levenshtein(str(wanted), word) == border:
+                valid = True
+                for i, letter in visible_characters:
+                    if word[i] != letter:
+                        valid = False
+                        break
+                if valid:
+                    words.append(word)
+        
+        return words            
 
     def play_learned_game(self, word=None):
         """Uses less moves than unlearned method on average"""
@@ -191,18 +249,16 @@ class HangmanBot(object):
         moves = 0
 
         while True:
-            if ideals == []:
-                for letter in lower_copy:
-                    moves += 1
-                    guess_value = self.game.bot_guess(letter)
-                    if guess_value == 0:
-                        break
-                
+            if ideals == [] and lower_copy == []:
+                break
             else:
-                for letter in ideals[:]:
+                for letter in ideals[:] + lower_copy[:]:
                     moves += 1
                     guess_value = self.game.bot_guess(letter)
-                    ideals.remove(letter)
+                    if letter in ideals:
+                        ideals.remove(letter)
+                    else:
+                        lower_copy.remove(letter)
                     if guess_value == 0:
                         break
             if guess_value == 0:
@@ -253,26 +309,38 @@ class HangmanBot(object):
             
 if __name__ == '__main__':
     bot = HangmanBot('../WordLists/pocket.txt')
-    bot.play_to_learn(5000)
-    bot.learn()
+    """bot.play_to_learn(7000)
+    bot.learn()"""
     print 'Time to test my learned vs unlearned playing bot:'
-    random_word = bot.game.random_word()
+    #random_word = bot.game.random_word()
+    random_word = HiddenWord("postal")
     print 'The word was {}'.format(random_word.reveal())
     print 'Learned : {} moves'.format(bot.play_learned_game(random_word))
     print 'Unlearned : {} moves'.format(bot.play_unlearned_game(random_word))
     print 'Random unlearned : {} moves'.format(bot.play_random_unlearned_game(random_word))
-    #print 'Lev : {} moves'.format(bot.play_lev_game(random_word))
+    print 'Lev : {} moves'.format(bot.play_lev_game(random_word))
+    print 'InteliLev : {} moves'.format(bot.play_intelligent_lev_game(random_word))
 
     learned_moves = 0
     unlearned_moves = 0
     random_unlearned_moves = 0
     lev_moves = 0
-    n = 5000
+    intelli_lev_moves = 0
+    n = 300
     for x in xrange(n):
         random_word = bot.game.random_word()
-        learned_moves += bot.play_learned_game(random_word)
-        unlearned_moves += bot.play_unlearned_game(random_word)
-        random_unlearned_moves += bot.play_random_unlearned_game(random_word)
+        learned_moves_this_time = bot.play_learned_game(random_word)
+        unlearned_moves_this_time = bot.play_unlearned_game(random_word)
+        intelli_lev_moves_this_time = bot.play_intelligent_lev_game(random_word)
+        """if learned_moves_this_time < intelli_lev_moves_this_time:
+            print 'Learned was faster than intelli!'
+            print random_word.reveal()
+            print learned_moves_this_time
+            print intelli_lev_moves_this_time"""
+        learned_moves += learned_moves_this_time
+        unlearned_moves += unlearned_moves_this_time
+        intelli_lev_moves += intelli_lev_moves_this_time
+        #random_unlearned_moves += bot.play_random_unlearned_game(random_word)
         #lev_moves += bot.play_lev_game(random_word)
 
     print
@@ -282,8 +350,10 @@ if __name__ == '__main__':
     print 'Moves using unlearned method : {}'.format(unlearned_moves)
     print 'Average moves per word with unlearned : {}'.format(unlearned_moves/(n +0.0))
     print
-    print 'Moves using random unlearned method : {}'.format(random_unlearned_moves)
-    print 'Average moves per word with random unlearned : {}'.format(random_unlearned_moves/(n +0.0))
-    print
-    print 'The difference was {}'.format(unlearned_moves - learned_moves)
+    #print 'Moves using random unlearned method : {}'.format(random_unlearned_moves)
+    #print 'Average moves per word with random unlearned : {}'.format(random_unlearned_moves/(n +0.0))
+    #print
     #print 'Moves using lev method : {}'.format(lev_moves)
+    
+    print 'Moves using intelligent lev method : {}'.format(intelli_lev_moves)
+    print 'Average moves per word with intelligent lev : {}'.format(intelli_lev_moves/(n +0.0))

@@ -1,6 +1,5 @@
 from random import randint
 import sys
-import pickle
     
 class Player(object):
     def __init__(self, name):
@@ -28,7 +27,7 @@ class EvenWinsBot(Player):
         if items > self.maximum:
             amount = randint(self.limit, self.maximum)
         else:
-            if items%2 == 0:
+            if items % 2 == 0:
                 amount = 1
             else:
                 if items == 1:
@@ -80,12 +79,12 @@ class EvenWinsGame(object):
 
 if __name__ == '__main__':
     player_one = EvenWinsBot('Durp', 1, 4)
-    player_two = EvenWinsBot('Borp', 1, 4)
+    player_two = EvenWinsBot('Borp', 1, 2)
     player_three = EvenWinsBot('Hurp', 1, 4)
     game = EvenWinsGame(27, 1, 4)
     winners = []
     for x in xrange(9999):
-        winners.append(game.play([player_one, player_two]).name)
+        winners.append(game.play([player_one, player_two, player_three]).name)
     for x in sorted(set(winners)):
         print x,
         print winners.count(x)

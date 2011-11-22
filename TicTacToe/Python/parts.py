@@ -152,12 +152,11 @@ class Player(object):
         self.name = name
         self.token = token
 
+class AI(Player):
+	
+	def __init__(self, name, token):
+		Player.__init__(name, token)
 
 def main():
-    game = TicTacToeGame()
-    while game.state == 0:
-        raw_input("Enter, in the format
-    
-    
-if __name__ == '__main__':            
+    pass
     
