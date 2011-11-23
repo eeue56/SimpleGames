@@ -1,28 +1,7 @@
 from random import choice, sample
 from string import ascii_lowercase as lowercase_letters
+from utils import *
 import sys
-
-def levenshtein(current_word, next_word):
-    if len(current_word) < len(next_word):
-        return levenshtein(next_word, current_word)
-    if not current_word:
-        return len(next_word)
- 
-    previous_row = xrange(len(next_word) + 1)
-    
-    for i, c1 in enumerate(current_word):
-        current_row = [i + 1]
-        for j, c2 in enumerate(next_word):
-            insertions = previous_row[j + 1] + 1 
-            deletions = current_row[j] + 1       
-            substitutions = previous_row[j] + (c1 != c2)
-            current_row.append(min(insertions, deletions, substitutions))
-        previous_row = current_row
- 
-    return previous_row[-1]
-
-def average(nums):
-    return (sum(nums) + 0.0) / len(nums)
 
 class HiddenWord(str):
 
@@ -214,14 +193,17 @@ class HangmanBot(object):
             
         return moves
         
-    def advance_fitting_words(self, wanted, border=1):
+    def advance_fitting_words(self, wanted, border=1, words=[]):
         visible_characters = wanted.visible_characters()
-        start_out_words = self.fitting_words(wanted)
+        if words is []:
+            start_out_words = self.fitting_words(wanted)
+        else:
+            start_out_words = words[:]
        
         words = list()
 
         for word in start_out_words:
-            if levenshtein(str(wanted), word) == border:
+            if levenshtein(str(wanted), word) <= border:
                 valid = True
                 for i, letter in visible_characters:
                     if word[i] != letter:
