@@ -335,6 +335,9 @@ class HangmanBot(object):
             
             
 if __name__ == '__main__':
+    import time
+
+    
     bot = HangmanBot('../WordLists/pocket.txt')
     """bot.play_to_learn(7000)
     bot.learn()"""
@@ -349,38 +352,57 @@ if __name__ == '__main__':
     print 'InteliLev : {} moves'.format(bot.play_intelligent_lev_game(random_word))
 
     learned_moves = 0
+    learned_time = 0
     unlearned_moves = 0
+    unlearned_time = 0
     random_unlearned_moves = 0
+    random_unlearned_time = 0
     lev_moves = 0
+    lev_time = 0
     intelli_lev_moves = 0
-    n = 10000
+    intelli_lev_time = 0
+    
+    n = 1000000
+    
     for x in xrange(n):
         random_word = bot.game.random_word()
+
+        start_time = time.time()
         learned_moves_this_time = bot.play_learned_game(random_word)
+        learned_time += time.time() - start_time
+
+        start_time = time.time()
         unlearned_moves_this_time = bot.play_unlearned_game(random_word)
+        unlearned_time += time.time() - start_time
+
+        start_time = time.time()
         intelli_lev_moves_this_time = bot.play_intelligent_lev_game(random_word)
-        """if learned_moves_this_time < intelli_lev_moves_this_time:
-            print 'Learned was faster than intelli!'
-            print random_word.reveal()
-            print learned_moves_this_time
-            print intelli_lev_moves_this_time"""
+        intelli_lev_time += time.time() - start_time
+
+
         learned_moves += learned_moves_this_time
+
         unlearned_moves += unlearned_moves_this_time
+
         intelli_lev_moves += intelli_lev_moves_this_time
+        
         #random_unlearned_moves += bot.play_random_unlearned_game(random_word)
         #lev_moves += bot.play_lev_game(random_word)
 
     print
     print 'Moves using learned method : {}'.format(learned_moves)
     print 'Average moves per word with learned : {}'.format(learned_moves/(n +0.0))
+    print 'Average time per word : {}'.format(learned_time/n)
     print
     print 'Moves using unlearned method : {}'.format(unlearned_moves)
     print 'Average moves per word with unlearned : {}'.format(unlearned_moves/(n +0.0))
+    print 'Average time per word : {}'.format(unlearned_time/n)
     print
     #print 'Moves using random unlearned method : {}'.format(random_unlearned_moves)
     #print 'Average moves per word with random unlearned : {}'.format(random_unlearned_moves/(n +0.0))
     #print
-    #print 'Moves using lev method : {}'.format(lev_moves)
     
     print 'Moves using intelligent lev method : {}'.format(intelli_lev_moves)
     print 'Average moves per word with intelligent lev : {}'.format(intelli_lev_moves/(n +0.0))
+    print 'Average time word : {}'.format(intelli_lev_time/n)
+
