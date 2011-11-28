@@ -362,7 +362,7 @@ if __name__ == '__main__':
     intelli_lev_moves = 0
     intelli_lev_time = 0
     
-    n = 1000000
+    n = 10000
     
     for x in xrange(n):
         random_word = bot.game.random_word()
@@ -393,10 +393,12 @@ if __name__ == '__main__':
     print 'Moves using learned method : {}'.format(learned_moves)
     print 'Average moves per word with learned : {}'.format(learned_moves/(n +0.0))
     print 'Average time per word : {}'.format(learned_time/n)
+    print 'Average time per letter : {}'.format(learned_time/learned_moves)
     print
     print 'Moves using unlearned method : {}'.format(unlearned_moves)
     print 'Average moves per word with unlearned : {}'.format(unlearned_moves/(n +0.0))
     print 'Average time per word : {}'.format(unlearned_time/n)
+    print 'Average time per letter : {}'.format(unlearned_time/unlearned_moves)
     print
     #print 'Moves using random unlearned method : {}'.format(random_unlearned_moves)
     #print 'Average moves per word with random unlearned : {}'.format(random_unlearned_moves/(n +0.0))
@@ -405,4 +407,6 @@ if __name__ == '__main__':
     print 'Moves using intelligent lev method : {}'.format(intelli_lev_moves)
     print 'Average moves per word with intelligent lev : {}'.format(intelli_lev_moves/(n +0.0))
     print 'Average time word : {}'.format(intelli_lev_time/n)
+    print 'Average time per letter : {}'.format(intelli_lev_time/intelli_lev_moves)
+
 
